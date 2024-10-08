@@ -171,7 +171,7 @@ async fn run_bot() -> Result<(), String> {
     if webhook_feature {
         let webhook_address = utils::get_env("WEBHOOK_ADDRESS")?;
         client
-            .execute(SetWebhook::new(webhook_address))
+            .execute(SetWebhook::new(webhook_address).with_drop_pending_updates(true))
             .await
             .map_err(|err| utils::make_err(Box::new(err), "set webhook"))?;
 
@@ -188,7 +188,7 @@ async fn run_bot() -> Result<(), String> {
             .map_err(|err| utils::make_err(Box::new(err), "create webhook"))?;
     } else {
         client
-            .execute(DeleteWebhook::default())
+            .execute(DeleteWebhook::default().with_drop_pending_updates(true))
             .await
             .map_err(|err| utils::make_err(Box::new(err), "delete webhook"))?;
         LongPoll::new(handler.client.clone(), handler).run().await;
