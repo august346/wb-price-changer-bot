@@ -74,6 +74,20 @@ async fn get_api_key(user_id: &str) -> Result<String, String> {
     Ok(body)
 }
 
+async fn send_start(
+    client: &Client, chat_id: ChatPeerId,
+) -> Result<(), String> {
+
+    let cmd = SendMessage::new(chat_id, "hi");
+
+    client
+        .execute(cmd)
+        .await
+        .map_err(|err| utils::make_err(Box::new(err), "send start"))?;
+
+    Ok(())
+}
+
 async fn send_api_key(
     client: &Client, chat_id: ChatPeerId, _: SuccessfulPayment,
 ) -> Result<(), String> {
@@ -88,7 +102,7 @@ async fn send_api_key(
     client
         .execute(cmd)
         .await
-        .map_err(|err| utils::make_err(Box::new(err), "send invoice"))?;
+        .map_err(|err| utils::make_err(Box::new(err), "send api key"))?;
 
     Ok(())
 }
@@ -105,7 +119,7 @@ async fn test_buy(client: &Client, chat_id: ChatPeerId) -> Result<(), String> {
     client
         .execute(cmd)
         .await
-        .map_err(|err| utils::make_err(Box::new(err), "send invoice"))?;
+        .map_err(|err| utils::make_err(Box::new(err), "test buy"))?;
 
     Ok(())
 }
@@ -125,6 +139,7 @@ async fn handle_update(client: &Client, update: Update) -> Result<(), String> {
                     if let Some(commands) = text.get_bot_commands() {
                         let command = &commands[0];
                         match command.command.as_str() {
+                            "/start" => { send_start(client, chat_id).await?; }
                             "/buy" => { send_invoice(client, chat_id).await?; }
                             "/test_buy" if superuser => { test_buy(client, chat_id).await?; }
                             _ => {}
@@ -158,7 +173,7 @@ async fn run_bot() -> Result<(), String> {
         client
             .execute(SetWebhook::new(webhook_address))
             .await
-            .map_err(|err| utils::make_err(Box::new(err), "send invoice"))?;
+            .map_err(|err| utils::make_err(Box::new(err), "set webhook"))?;
 
         let host = utils::get_env("HOST")?
             .parse::<IpAddr>()
@@ -175,7 +190,7 @@ async fn run_bot() -> Result<(), String> {
         client
             .execute(DeleteWebhook::default())
             .await
-            .map_err(|err| utils::make_err(Box::new(err), "send invoice"))?;
+            .map_err(|err| utils::make_err(Box::new(err), "delete webhook"))?;
         LongPoll::new(handler.client.clone(), handler).run().await;
     }
 

@@ -1,0 +1,10 @@
+services:
+  bot:
+    build:
+      context: .
+      target: final
+    restart: always
+    ports:
+      - "1003:8080"
+    env_file:
+      - .env
