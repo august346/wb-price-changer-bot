@@ -21,13 +21,17 @@ impl UpdateHandler for Handler {
 }
 
 async fn send_invoice(client: &Client, chat_id: ChatPeerId) -> Result<(), String> {
+    let price = utils::get_env("API_KEY_PRICE")?
+        .parse()
+        .map_err(|err| utils::make_err(Box::new(err), "parse price"))?;
+
     let cmd = SendInvoice::new(
         chat_id,
         "API KEY",
         "WB API KEY for repricing chrome extension",
         "1",
         "XTR",
-        vec![LabeledPrice::new(123, "20")],
+        vec![LabeledPrice::new(price, "20")],
     );
 
     client

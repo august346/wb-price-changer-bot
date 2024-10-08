@@ -8,4 +8,5 @@ API_URL=your_api_url
 S_USERNAME=your_super_username
 WEBHOOK_FEATURE=true
 WEBHOOK_ADDRESS=http://localhost:8080
+API_KEY_PRICE=100
 ```
