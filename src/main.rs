@@ -5,7 +5,7 @@ use reqwest::header;
 use serde_json::json;
 use tgbot::api::Client;
 use tgbot::handler::{LongPoll, UpdateHandler, WebhookServer};
-use tgbot::types::{ChatPeerId, DeleteWebhook, LabeledPrice, MessageData, ParseMode, SendInvoice, SendMessage, SetWebhook, SuccessfulPayment, Update, UpdateType};
+use tgbot::types::{AnswerPreCheckoutQuery, ChatPeerId, DeleteWebhook, LabeledPrice, MessageData, ParseMode, SendInvoice, SendMessage, SetWebhook, SuccessfulPayment, Update, UpdateType};
 use tracing::{error, info, Level};
 
 struct Handler {
@@ -128,8 +128,22 @@ async fn test_buy(client: &Client, chat_id: ChatPeerId) -> Result<(), String> {
     Ok(())
 }
 
+async fn checkout(client: &Client, id: String) -> Result<(), String> {
+    let cmd = AnswerPreCheckoutQuery::ok(id);
+
+    client
+        .execute(cmd)
+        .await
+        .map_err(|err| utils::make_err(Box::new(err), "test buy"))?;
+
+    Ok(())
+}
+
 async fn handle_update(client: &Client, update: Update) -> Result<(), String> {
     match update.update_type {
+        UpdateType::PreCheckoutQuery(query) => {
+            checkout(client, query.id).await?;
+        },
         UpdateType::Message(message) => {
             let chat_id = message.chat.get_id();
             let superuser = message
